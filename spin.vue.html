@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+  <style>
+    canvas {
+      border:1px solid #d3d3d3;
+      background-color: #f1f1f1;
+    }
+    #app {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    #spinboard {
+      text-align: center;
+    }
+    #birds {
+      text-align: left;
+    }
+    /* The Modal (background) */
+    .modal {
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    z-index: 1;
+    padding-top: 100px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+    }
+
+    /* Modal Content */
+    .modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* Change this line */
+    background-color: #fefefe;
+    margin: auto;
+    padding: 0;
+    border: 1px solid #888;
+    width: 300px;
+    height: 400px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    animation-name: animatetop;
+    animation-duration: 0.4s;
+    }
+
+/* Add a new style for .modal-body */
+    .modal-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1; /* This ensures that .modal-body takes up all available space */
+    }
+
+    /* Add Animation */
+    @keyframes animatetop {
+      from {top: -300px; opacity: 0} 
+      to {top: 0; opacity: 1}
+    }
+
+    /* The Close Button */
+    .close {
+      color: white;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: #000;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .modal-header {
+    padding: 2px 16px;
+    background-color: #5cb85c;
+    color: white;
+    width: 100%;  /* This ensures that the header takes up the full width of its parent */
+    box-sizing: border-box;  /* This ensures that the padding is included in the element's total width */
+    }
+    
+  </style>
+</head>
+<body>
+
+    <div id="app">
+        <div id="spinboard">
+          <canvas ref="canvas" width="1000" height="1000"></canvas>
+          <input v-model="numSectors" type="number" min="4" max="12" value="4">
+          <button @click="confirmAndShowModal">Confirm</button>
+          <button @click="spinWheel" :disabled="isSpinsRemainingZero()">StartSpin</button>
+        </div>
+        <div id="modal" class="modal" :style="{ display: isModalVisible ? 'block' : 'none' }">
+          <div class="modal-content">
+            <div class="modal-header">
+              <span class="close" @click="closeModal">&times;</span>
+              <h2>{{ modalHeaderText }}</h2>
+            </div>
+            <div class="modal-body">
+              <div id="birds" v-html="modalBodyText">{{ modalBodyText }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+<script>
+new Vue({
+  el: '#app',
+  data() {
+    return {
+      ctx: null,
+      birds: ["Emu", "Cockatoo", "Kookaburra", "Lyrebird", "Fairy Penguin", "Galah", "Pelican", "Rainbow Lorikeet", "Rosella", "Budgerigar", "Sulfur-Crested Cockatoo", "Cassowary"],
+      colors: ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#00FFFF", "#FF00FF", "#C0C0C0", "#808080", "#800000", "#808000", "#800080", "#008080"],
+      startAngle: 0,
+      numSectors: 4,
+      sectorArc: 2 * Math.PI / 4,
+      spinsRemaining: 0,
+      prize: '',
+      chosenBirdIndex: 0,
+      birdsChosen: [],
+      colorsChosen: [],
+      birdNames: '',  // New property for storing bird names
+      angle: 0,  // New property for storing the wheel's current angle
+      modalVisible: false, // New property for controlling the modal's visibility
+      isModalVisible: false,
+      modalHeaderText: '',
+      modalBodyText: '',
+      //const emojis = ["&#128520;", "&#128522;", "&#128523;", "&#128526;", "&#128528;", "&#128529;", "&#128530;", "&#128531;", "&#128534;", "&#128536;", "&#128537;", "&#128538;"];
+      emojis: ["&#128038;", "&#128065;", "&#129417;", "&#129415;", "&#129446;", "&#129434;", "&#129433;", "&#129456;", "&#128020;", "&#128016;", "&#128036;", "&#128037;"],
+      //emojis: ["🦆", "🦅", "🦉", "🦇", "🦢", "🦜", "🦚", "🦩", "🐓", "🐔", "🐣", "🐤"],
+   }
+  },
+  watch: {
+    numSectors: function() {
+      this.sectorArc = 2 * Math.PI / this.numSectors;
+      this.spinsRemaining = this.numSectors;
+      this.birdsChosen = [];
+      this.colorsChosen = [];
+      this.birdNames = '';  // Reset the birdNames string
+      for (let i = 0; i < this.numSectors; i++) {  // For each sector...
+        this.birdNames += this.birds[i] + ', ';  // ...add the bird's name to birdNames...
+      }
+      this.birdNames = this.birdNames.slice(0, -2);  // ...and remove the trailing comma and space.      
+      this.drawWheel();
+    }
+  },
+  methods: {
+    confirmAndShowModal() {
+      this.initWheel();
+      this.modalHeaderText = 'Please pick up avatar';
+      this.modalBodyText = this.birdNames;
+      this.isModalVisible = true;
+    },
+    closeModal() {
+      this.isModalVisible = false;
+    },    
+    initWheel() {
+      this.ctx = this.$refs.canvas.getContext('2d');
+      this.spinsRemaining = this.numSectors;
+      this.birdsChosen = [];
+      this.colorsChosen = [];
+      this.birdNames = '';  // Reset the birdNames string
+        for (let i = 0; i < this.numSectors; i++) {  // For each sector...
+        // Generate a random index for choosing an emoji
+        const emojiIndex = Math.floor(Math.random() * this.emojis.length);
+        // Prepend a random emoji and a space to each bird's name
+        this.birdNames += this.emojis[emojiIndex] + " " + this.birds[i] + '<br>';
+        }
+      this.drawWheel();
+    },
+    drawWheel() {
+      this.ctx.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
+      this.ctx.save();
+      this.ctx.translate(500, 500);
+      this.ctx.rotate(this.angle); 
+      for(var i = 0; i < this.numSectors; i++) {
+        var angle = i * this.sectorArc;
+        this.ctx.beginPath();
+        this.ctx.fillStyle = this.colors[i];
+        this.ctx.moveTo(0, 0);
+        this.ctx.arc(0, 0, 400, angle, angle + this.sectorArc, false);
+        this.ctx.lineTo(0, 0);
+        this.ctx.fill();
+        // Draw bird names
+        var birdAngle = angle + this.sectorArc / 2;
+        var birdX = 400 / 2 * Math.cos(birdAngle);
+        var birdY = 400 / 2 * Math.sin(birdAngle);
+        this.ctx.fillStyle = '#000000';
+        this.ctx.font = '20px Arial';
+        this.ctx.fillText(this.birds[i], birdX, birdY);
+      }
+      this.ctx.restore();
+      // Draw pointer
+      this.ctx.beginPath();
+      this.ctx.fillStyle = '#000000';
+      this.ctx.moveTo(500, 500);
+      this.ctx.lineTo(500+20, 500);
+      this.ctx.lineTo(500, 500-40);
+      this.ctx.closePath();
+      this.ctx.fill();
+    },
+    spinWheel() {
+      if (this.spinsRemaining > 0) {
+        let randomIndex;
+        do {
+          randomIndex = Math.floor(Math.random() * this.numSectors);
+        } while (this.birdsChosen.includes(this.birds[randomIndex]));
+
+        this.spinsRemaining -= 1;
+        this.chosenBirdIndex = randomIndex;
+        this.birdsChosen.push(this.birds[this.chosenBirdIndex]);
+        this.prize = "Prize: " + this.birds[this.chosenBirdIndex];
+
+        const finalAngle = (2 * Math.PI) - (this.chosenBirdIndex * this.sectorArc) - (this.sectorArc / 2);
+        const step = (finalAngle - this.angle) / 100;
+        const id = setInterval(() => {
+            if (Math.abs(finalAngle - this.angle) < Math.abs(step)) {
+                this.angle = finalAngle;
+                clearInterval(id);
+            } else {
+                this.angle += step;
+                this.drawWheel();
+            }
+        }, 10);
+      this.modalHeaderText = 'The winner goes to';
+      this.modalBodyText = this.prize;
+      this.isModalVisible = true;
+      }
+    },
+    isSpinsRemainingZero() {
+        return this.spinsRemaining === 0;
+    }
+  }
+});
+</script>
+
+</body>
+</html>
