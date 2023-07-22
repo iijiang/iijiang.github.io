@@ -59,6 +59,7 @@
     align-items: center;
     justify-content: center;
     flex-grow: 1; /* This ensures that .modal-body takes up all available space */
+    font-weight: bold;
     }
 
     /* Add Animation */
@@ -114,136 +115,133 @@
         </div>
       </div>
 
-<script>
-new Vue({
-  el: '#app',
-  data() {
-    return {
-      ctx: null,
-      birds: ["Emu", "Cockatoo", "Kookaburra", "Lyrebird", "Fairy Penguin", "Galah", "Pelican", "Rainbow Lorikeet", "Rosella", "Budgerigar", "Sulfur-Crested Cockatoo", "Cassowary"],
-      colors: ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#00FFFF", "#FF00FF", "#C0C0C0", "#808080", "#800000", "#808000", "#800080", "#008080"],
-      startAngle: 0,
-      numSectors: 4,
-      sectorArc: 2 * Math.PI / 4,
-      spinsRemaining: 0,
-      prize: '',
-      chosenBirdIndex: 0,
-      birdsChosen: [],
-      colorsChosen: [],
-      birdNames: '',  // New property for storing bird names
-      angle: 0,  // New property for storing the wheel's current angle
-      modalVisible: false, // New property for controlling the modal's visibility
-      isModalVisible: false,
-      modalHeaderText: '',
-      modalBodyText: '',
-      //const emojis = ["&#128520;", "&#128522;", "&#128523;", "&#128526;", "&#128528;", "&#128529;", "&#128530;", "&#128531;", "&#128534;", "&#128536;", "&#128537;", "&#128538;"];
-      emojis: ["&#128038;", "&#128065;", "&#129417;", "&#129415;", "&#129446;", "&#129434;", "&#129433;", "&#129456;", "&#128020;", "&#128016;", "&#128036;", "&#128037;"],
-      //emojis: ["🦆", "🦅", "🦉", "🦇", "🦢", "🦜", "🦚", "🦩", "🐓", "🐔", "🐣", "🐤"],
-   }
-  },
-  watch: {
-    numSectors: function() {
-      this.sectorArc = 2 * Math.PI / this.numSectors;
-      this.spinsRemaining = this.numSectors;
-      this.birdsChosen = [];
-      this.colorsChosen = [];
-      this.birdNames = '';  // Reset the birdNames string
-      for (let i = 0; i < this.numSectors; i++) {  // For each sector...
-        this.birdNames += this.birds[i] + ', ';  // ...add the bird's name to birdNames...
-      }
-      this.birdNames = this.birdNames.slice(0, -2);  // ...and remove the trailing comma and space.      
-      this.drawWheel();
-    }
-  },
-  methods: {
-    confirmAndShowModal() {
-      this.initWheel();
-      this.modalHeaderText = 'Please pick up avatar';
-      this.modalBodyText = this.birdNames;
-      this.isModalVisible = true;
-    },
-    closeModal() {
-      this.isModalVisible = false;
-    },    
-    initWheel() {
-      this.ctx = this.$refs.canvas.getContext('2d');
-      this.spinsRemaining = this.numSectors;
-      this.birdsChosen = [];
-      this.colorsChosen = [];
-      this.birdNames = '';  // Reset the birdNames string
-        for (let i = 0; i < this.numSectors; i++) {  // For each sector...
-        // Generate a random index for choosing an emoji
-        const emojiIndex = Math.floor(Math.random() * this.emojis.length);
-        // Prepend a random emoji and a space to each bird's name
-        this.birdNames += this.emojis[emojiIndex] + " " + this.birds[i] + '<br>';
-        }
-      this.drawWheel();
-    },
-    drawWheel() {
-      this.ctx.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
-      this.ctx.save();
-      this.ctx.translate(500, 500);
-      this.ctx.rotate(this.angle); 
-      for(var i = 0; i < this.numSectors; i++) {
-        var angle = i * this.sectorArc;
-        this.ctx.beginPath();
-        this.ctx.fillStyle = this.colors[i];
-        this.ctx.moveTo(0, 0);
-        this.ctx.arc(0, 0, 400, angle, angle + this.sectorArc, false);
-        this.ctx.lineTo(0, 0);
-        this.ctx.fill();
-        // Draw bird names
-        var birdAngle = angle + this.sectorArc / 2;
-        var birdX = 400 / 2 * Math.cos(birdAngle);
-        var birdY = 400 / 2 * Math.sin(birdAngle);
-        this.ctx.fillStyle = '#000000';
-        this.ctx.font = '20px Arial';
-        this.ctx.fillText(this.birds[i], birdX, birdY);
-      }
-      this.ctx.restore();
-      // Draw pointer
-      this.ctx.beginPath();
-      this.ctx.fillStyle = '#000000';
-      this.ctx.moveTo(500, 500);
-      this.ctx.lineTo(500+20, 500);
-      this.ctx.lineTo(500, 500-40);
-      this.ctx.closePath();
-      this.ctx.fill();
-    },
-    spinWheel() {
-      if (this.spinsRemaining > 0) {
-        let randomIndex;
-        do {
-          randomIndex = Math.floor(Math.random() * this.numSectors);
-        } while (this.birdsChosen.includes(this.birds[randomIndex]));
-
-        this.spinsRemaining -= 1;
-        this.chosenBirdIndex = randomIndex;
-        this.birdsChosen.push(this.birds[this.chosenBirdIndex]);
-        this.prize = "Prize: " + this.birds[this.chosenBirdIndex];
-
-        const finalAngle = (2 * Math.PI) - (this.chosenBirdIndex * this.sectorArc) - (this.sectorArc / 2);
-        const step = (finalAngle - this.angle) / 100;
-        const id = setInterval(() => {
-            if (Math.abs(finalAngle - this.angle) < Math.abs(step)) {
-                this.angle = finalAngle;
-                clearInterval(id);
-            } else {
-                this.angle += step;
-                this.drawWheel();
+      <script>
+        new Vue({
+          el: '#app',
+          data: {
+            ctx: null,
+            birds: ["Emu", "Cockatoo", "Kookaburra", "Lyrebird", "Fairy Penguin", "Galah", "Pelican", "Rainbow Lorikeet", "Rosella", "Budgerigar", "Sulfur-Crested Cockatoo", "Cassowary"],
+            colors: ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#00FFFF", "#FF00FF", "#C0C0C0", "#808080", "#800000", "#808000", "#800080", "#008080"],
+            startAngle: 0,
+            numSectors: 4,
+            sectorArc: 2 * Math.PI / 4,
+            spinsRemaining: 0,
+            prize: '',
+            chosenBirdIndex: 0,
+            birdsChosen: [],
+            colorsChosen: [],
+            birdNames: '',
+            angle: 0,
+            isModalVisible: false,
+            modalHeaderText: '',
+            modalBodyText: '',
+            emojis: ["&#128038;", "&#128065;", "&#129417;", "&#129415;", "&#129446;", "&#129434;", "&#129433;", "&#129456;", "&#128020;", "&#128016;", "&#128036;", "&#128037;"],
+          },
+          watch: {
+            numSectors() {
+              this.sectorArc = 2 * Math.PI / this.numSectors;
+              this.spinsRemaining = this.numSectors;
+              this.birdsChosen = [];
+              this.colorsChosen = [];
+              this.birdNames = this.birds.slice(0, this.numSectors).join(', ');
+              this.drawWheel();
             }
-        }, 10);
-      this.modalHeaderText = 'The winner goes to';
-      this.modalBodyText = this.prize;
-      this.isModalVisible = true;
-      }
-    },
-    isSpinsRemainingZero() {
-        return this.spinsRemaining === 0;
-    }
-  }
-});
-</script>
+          },
+        mounted() {
+            document.addEventListener("keyup", this.escapeKeyListener);
+        },
+        beforeDestroy() {
+            document.removeEventListener("keyup", this.escapeKeyListener);
+        },           
+          methods: {
+            escapeKeyListener(e) {
+                if (e.key === "Escape" && this.isModalVisible) {
+                    this.closeModal();
+                }
+            },
+            confirmAndShowModal() {
+              this.initWheel();
+              this.modalHeaderText = 'Please pick up avatar';
+              this.modalBodyText = this.birdNames;
+              this.isModalVisible = true;
+            },
+            closeModal() {
+              this.isModalVisible = false;
+            },
+            initWheel() {
+              this.ctx = this.$refs.canvas.getContext('2d');
+              this.spinsRemaining = this.numSectors;
+              this.birdsChosen = [];
+              this.colorsChosen = [];
+              this.birdNames = this.birds.slice(0, this.numSectors).map((bird, index) => `${this.emojis[index]} ${bird}`).join('<br>');
+              this.drawWheel();
+            },
+            drawWheel() {
+                this.ctx.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
+                this.ctx.save();
+                this.ctx.translate(500, 500);
+                this.ctx.rotate(this.angle); 
+                for(var i = 0; i < this.numSectors; i++) {
+                var angle = i * this.sectorArc;
+                this.ctx.beginPath();
+                this.ctx.fillStyle = this.colors[i];
+                this.ctx.moveTo(0, 0);
+                this.ctx.arc(0, 0, 400, angle, angle + this.sectorArc, false);
+                this.ctx.lineTo(0, 0);
+                this.ctx.fill();
+                // Draw bird names
+                var birdAngle = angle + this.sectorArc / 2;
+                var birdX = 400 / 2 * Math.cos(birdAngle);
+                var birdY = 400 / 2 * Math.sin(birdAngle);
+                this.ctx.fillStyle = '#000000';
+                this.ctx.font = '20px Arial';
+                this.ctx.fillText(this.birds[i], birdX, birdY);
+                }
+                this.ctx.restore();
+                // Draw pointer
+                this.ctx.beginPath();
+                this.ctx.fillStyle = '#000000';
+                this.ctx.moveTo(500, 500);
+                this.ctx.lineTo(500+20, 500);
+                this.ctx.lineTo(500, 500-40);
+                this.ctx.closePath();
+                this.ctx.fill();
+            },
+ 
+            spinWheel() {
+              if (this.spinsRemaining > 0) {
+                let randomIndex;
+                do {
+                  randomIndex = Math.floor(Math.random() * this.numSectors);
+                } while (this.birdsChosen.includes(this.birds[randomIndex]));
+        
+                this.spinsRemaining -= 1;
+                this.chosenBirdIndex = randomIndex;
+                this.birdsChosen.push(this.birds[this.chosenBirdIndex]);
+                this.prize = "Prize: " + this.birds[this.chosenBirdIndex];
+        
+                const finalAngle = (2 * Math.PI) - (this.chosenBirdIndex * this.sectorArc) - (this.sectorArc / 2);
+                const step = (finalAngle - this.angle) / 100;
+                const id = setInterval(() => {
+                    if (Math.abs(finalAngle - this.angle) < Math.abs(step)) {
+                        this.angle = finalAngle;
+                        clearInterval(id);
+                    } else {
+                        this.angle += step;
+                        this.drawWheel();
+                    }
+                }, 10);
+                this.modalHeaderText = 'The winner goes to';
+                this.modalBodyText = this.prize;
+                this.isModalVisible = true;
+              }
+            },
+            isSpinsRemainingZero() {
+              return this.spinsRemaining === 0;
+            }
+          }
+        });
+        </script>
 
 </body>
 </html>
